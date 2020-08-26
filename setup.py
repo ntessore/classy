@@ -1,6 +1,7 @@
 from distutils.core import setup
 from distutils.extension import Extension
 from distutils.errors import CompileError
+from distutils.sysconfig import get_python_lib
 from Cython.Distutils import build_ext
 
 import numpy
@@ -34,8 +35,13 @@ class _build_ext(build_ext):
                 ext.extra_compile_args.append(self.ompflag or '-fopenmp')
                 ext.extra_link_args.append(self.omplib)
 
-        # make command in class_public, pass given OMPFLAG
-        make = ['make', 'libclass.a']
+        # get the directory where the package will be installed (MDIR)
+        # as well as the current working directory (WRKDIR)
+        mdir = os.path.join(get_python_lib(), 'classy')
+        wrkdir = 'build'
+
+        # make command in class_public, pass options
+        make = ['make', 'libclass.a', 'MDIR=' + mdir, 'WRKDIR=' + wrkdir]
         if self.ompflag is not None:
             make += ['OMPFLAG=' + self.ompflag]
 
@@ -53,17 +59,50 @@ class _build_ext(build_ext):
 subprocess.check_call(['make'])
 CLASS_VERSION = subprocess.check_output(['./version']).decode(sys.stdout.encoding)
 
-# the extension for classy, OpenMP libraries are handled in builder
-classy_ext = Extension('classy', ['class_public/python/classy.pyx'],
-                       include_dirs=[numpy.get_include(), 'class_public/include'],
-                       libraries=['class', 'm'], library_dirs=['class_public'])
+# source files for the classy extension
+CLASSY_SOURCES = [
+    'class_public/python/classy.pyx',
+]
+
+# include paths for the classy extension
+CLASSY_INCLUDE_DIRS = [
+    numpy.get_include(),
+    'class_public/include',
+]
+
+# libraries for the classy extension
+CLASSY_LIBRARIES = [
+    'class',
+    'm',
+]
+
+# library search dirs for the classy extension
+CLASSY_LIBRARY_DIRS = [
+    'class_public',
+]
+
+# subdirectories with data files
+CLASS_DATA_PACKAGES = [
+    'classy.bbn',
+]
 
 # the setup script with one extension and the custom builder
-setup(name='classy',
-      version=CLASS_VERSION,
-      description='Python interface to the Cosmological Boltzmann code CLASS',
-      url='http://www.class-code.net',
-      cmdclass={'build_ext': _build_ext},
-      ext_modules=[classy_ext],
-      #data_files=[('bbn', ['class_public/bbn/sBBN.dat'])]
+setup(
+    name='classy',
+    version=CLASS_VERSION,
+    description='Python interface to the Cosmological Boltzmann code CLASS',
+    url='http://www.class-code.net',
+    cmdclass={'build_ext': _build_ext},
+    ext_modules=[
+        Extension(
+            'classy',
+            CLASSY_SOURCES,
+            include_dirs=CLASSY_INCLUDE_DIRS,
+            libraries=CLASSY_LIBRARIES,
+            library_dirs=CLASSY_LIBRARY_DIRS
+        ),
+    ],
+    packages=CLASS_DATA_PACKAGES,
+    package_dir={'classy': 'class_public'},
+    package_data={'': ['*.dat']}
 )
