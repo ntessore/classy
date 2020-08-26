@@ -1,0 +1,47 @@
+name: Update Versions
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - name: Configure git
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git config advice.detachedHead false
+    - name: Update master
+      run: |
+        git submodule update --remote
+        git add class_public
+        git diff-index --quiet HEAD || git commit -m 'update master'
+        git push
+    - name: Update Tags
+      run: |
+        HEAD=$(git rev-parse HEAD)
+
+        echo "using ${HEAD} as base commit"
+
+        cd class_public
+        git fetch --tags
+        TAGS=$(git tag)
+        cd ..
+
+        for t in ${TAGS}; do
+            echo "tagging ${t}"
+            git checkout "${HEAD}"
+            cd class_public
+            git checkout refs/tags/"${t}"
+            cd ..
+            git add class_public
+            git diff-index --quiet HEAD || git commit -m "tag ${t}"
+            git tag -f "${t}"
+        done
+        git push --tags --force

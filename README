@@ -3,11 +3,15 @@ https://github.com/lesgourg/class_public
 
 Install:
 
-$ pip install git+https://github.com/ntessore/classy.git#egg=classy
+$ pip install git+https://github.com/skypyproject/classy.git#egg=classy
+
+Install a specific version, using the corresponding tag:
+
+$ pip install git+https://github.com/skypyproject/classy.git@v2.8.2#egg=classy
 
 Install without OpenMP support (macOS with default clang):
 
-$ OMPFLAG= pip install git+https://github.com/ntessore/classy.git#egg=classy
+$ OMPFLAG= pip install git+https://github.com/skypyproject/classy.git#egg=classy
 
 Set any other OMPFLAG in the same way. If you require a different OpenMP library
 than `-lgomp`, use the OMPLIB environment variable.
