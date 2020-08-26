@@ -6,8 +6,9 @@ from Cython.Distutils import build_ext
 
 import numpy
 import os
-import sys
+import re
 import subprocess
+
 
 # custom builder
 class _build_ext(build_ext):
@@ -55,9 +56,13 @@ class _build_ext(build_ext):
         build_ext.run(self)
 
 
-# call make in wrapper to build version tool, then call it
-subprocess.check_call(['make'])
-CLASS_VERSION = subprocess.check_output(['./version']).decode(sys.stdout.encoding)
+# get CLASS version from header
+with open('class_public/include/common.h') as f:
+    for line in f:
+        match = re.search('#define _VERSION_ "(.*)"', line)
+        if match:
+            CLASS_VERSION = match[1]
+            break
 
 # source files for the classy extension
 CLASSY_SOURCES = [
