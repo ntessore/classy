@@ -12,23 +12,27 @@ import subprocess
 class _build_ext(build_ext):
     user_options = build_ext.user_options + [
         ('ompflag=', None, 'compiler flag for OpenMP'),
+        ('omplib=', None, 'library for OpenMP'),
     ]
 
     def initialize_options(self):
         build_ext.initialize_options(self)
         self.ompflag = None
+        self.omplib = '-lgomp'
 
     def finalize_options(self):
         build_ext.finalize_options(self)
         if 'OMPFLAG' in os.environ:
             self.ompflag = os.environ['OMPFLAG']
+        if 'OMPLIB' in os.environ:
+            self.ompflag = os.environ['OMPLIB']
 
     def run(self):
-        # set the OMPFLAG in compiler options, unless empty
+        # set the OMPFLAG and OMPLIB in compiler options, unless empty
         if self.ompflag != '':
             for ext in self.extensions:
                 ext.extra_compile_args.append(self.ompflag or '-fopenmp')
-                ext.extra_link_args.append('-lomp')
+                ext.extra_link_args.append(self.omplib)
 
         # make command in class_public, pass given OMPFLAG
         make = ['make', 'libclass.a']

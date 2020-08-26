@@ -9,4 +9,5 @@ Install without OpenMP support (macOS with default clang):
 
 $ OMPFLAG= pip install git+https://github.com/ntessore/classy.git#egg=classy
 
-Set any other OMPFLAG in the same way.
+Set any other OMPFLAG in the same way. If you require a different OpenMP library
+than `-lgomp`, use the OMPLIB environment variable.
