@@ -56,7 +56,7 @@ CLASS_VERSION = subprocess.check_output(['./version']).decode(sys.stdout.encodin
 # the extension for classy, OpenMP libraries are handled in builder
 classy_ext = Extension('classy', ['class_public/python/classy.pyx'],
                        include_dirs=[numpy.get_include(), 'class_public/include'],
-                       libraries=['class'], library_dirs=['class_public'])
+                       libraries=['class', 'm'], library_dirs=['class_public'])
 
 # the setup script with one extension and the custom builder
 setup(name='classy',
