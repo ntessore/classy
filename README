@@ -1,0 +1,12 @@
+A pip-installable wrapper around the CLASS distribution:
+https://github.com/lesgourg/class_public
+
+Install:
+
+$ pip install git+https://github.com/ntessore/classy.git#egg=classy
+
+Install without OpenMP support (macOS with default clang):
+
+$ OMPFLAG= pip install git+https://github.com/ntessore/classy.git#egg=classy
+
+Set any other OMPFLAG in the same way.
