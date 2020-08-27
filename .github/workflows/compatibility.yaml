@@ -17,31 +17,46 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config advice.detachedHead false
-    - name: Update master
+    - name: Unshallow Clone
       run: |
-        git submodule update --remote
-        git add class_public
-        git diff-index --quiet HEAD || git commit -m 'update master'
-        git push
-    - name: Update Tags
-      run: |
-        HEAD=$(git rev-parse HEAD)
-
-        echo "using ${HEAD} as base commit"
-
+        head=$(git rev-parse HEAD)
         cd class_public
-        git fetch --tags
-        TAGS=$(git tag)
+        git remote set-branches origin '*'
+        git fetch --unshallow --tags origin '+refs/heads/*:refs/heads/*'
+        git checkout master
+        branches=$(git branch --format='%(refname:short)')
+        tags=$(git tag)
         cd ..
 
-        for t in ${TAGS}; do
-            echo "tagging ${t}"
-            git checkout "${HEAD}"
-            cd class_public
-            git checkout refs/tags/"${t}"
-            cd ..
-            git add class_public
-            git diff-index --quiet HEAD || git commit -m "tag ${t}"
-            git tag -f "${t}"
+        echo "head: $(echo ${head})"
+        echo "::set-env name=head::$(echo ${head})"
+
+        echo "branches: $(echo ${branches})"
+        echo "::set-env name=branches::$(echo ${branches})"
+
+        echo "tags: $(echo ${tags})"
+        echo "::set-env name=tags::$(echo ${tags})"
+    - name: Update Branches
+      run: |
+        for b in ${branches}; do
+          echo "branch ${b}"
+          git checkout -f ${b} || git checkout -b ${b}
+          git reset --hard ${head}
+          git submodule set-branch --branch ${b} class_public
+          git submodule update --remote
+          git diff --quiet || git commit -am "branch ${b}"
         done
-        git push --tags --force
+        git push -f --all origin
+    - name: Update Tags
+      run: |
+        for t in ${tags}; do
+          echo "tag ${t}"
+          git checkout -f ${head}
+          git reset --hard ${head}
+          cd class_public
+          git checkout ${t}
+          cd ..
+          git diff --quiet || git commit -am "tag ${t}"
+          git tag -f ${t}
+        done
+        git push -f --tags
