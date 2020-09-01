@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 4 * * *'
 jobs:
-  update:
+  versions:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
@@ -39,24 +39,24 @@ jobs:
     - name: Update Branches
       run: |
         for b in ${branches}; do
-          echo "branch ${b}"
-          git checkout -f ${b} || git checkout -b ${b}
-          git reset --hard ${head}
-          git submodule set-branch --branch ${b} class_public
-          git submodule update --remote
-          git diff --quiet || git commit -am "branch ${b}"
+          (git checkout -qf ${b} 2> /dev/null && echo "checkout ${b}") || (git branch -qf ${b} ${head} && git checkout -qf ${b} && echo "branch ${b}")
+          prev=$(git rev-parse HEAD)
+          git reset -q --hard ${head}
+          git submodule -q set-branch --branch ${b} class_public
+          git submodule -q update --remote
+          git diff --quiet || git commit -qam "branch ${b}"
+          git diff --quiet ${prev} && git reset -q --hard ${prev} && echo "no change"
         done
         git push -f --all origin
     - name: Update Tags
       run: |
         for t in ${tags}; do
-          echo "tag ${t}"
-          git checkout -f ${head}
-          git reset --hard ${head}
-          cd class_public
-          git checkout ${t}
-          cd ..
-          git diff --quiet || git commit -am "tag ${t}"
+          (git checkout -qf ${t} 2> /dev/null && echo "checkout ${t}") || (git checkout -qf ${head} && echo "tag ${t}")
+          prev=$(git rev-parse HEAD)
+          git reset -q --hard ${head}
+          cd class_public && git checkout -qf ${t} && cd ..
+          git diff --quiet || git commit -qam "tag ${t}"
+          git diff --quiet ${prev} && git reset -q --hard ${prev} && echo "no change"
           git tag -f ${t}
         done
-        git push -f --tags
+        git push -f --tags origin
