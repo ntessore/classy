@@ -54,6 +54,7 @@ jobs:
           (git checkout -qf ${t} 2> /dev/null && echo "checkout ${t}") || (git checkout -qf ${head} && echo "tag ${t}")
           prev=$(git rev-parse HEAD)
           git reset -q --hard ${head}
+          git submodule -q set-branch --default class_public
           cd class_public && git checkout -qf ${t} && cd ..
           git diff --quiet || git commit -qam "tag ${t}"
           git diff --quiet ${prev} && git reset -q --hard ${prev} && echo "no change"
