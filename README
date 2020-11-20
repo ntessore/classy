@@ -1,3 +1,12 @@
+DEPRECATED - DO NOT USE - WILL BE REMOVED
+
+This repository has been deprecated as packages are available on PyPi:
+https://pypi.org/project/classy
+
+This repository will be removed with the next release of SkyPy.
+
+------------------------------------------------------------------------------
+
 A pip-installable wrapper around the CLASS distribution:
 https://github.com/lesgourg/class_public
 
